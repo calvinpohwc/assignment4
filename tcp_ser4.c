@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
             }
              
-            printf("Error Probability chosen is : %d", error_probability);
+            printf("Error Probability chosen is : %d\n", error_probability);
 
         }
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);          //create socket
