@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     if (argc == 3) {
         error_probability = get_error_probability(argv[2]);
     }
-    
+
     printf("Error Probability chosen is : %d\n", error_probability);
 
 
@@ -142,9 +142,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
         packet_ack = 0;
         // end of packets splitting
 
-
-
-        printf("\n\nnew packet\n\n");
+        printf("\n New unique packet \n");
 
         while (!packet_ack) // keep retransmit if not acknowledged
         {
@@ -164,11 +162,10 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
 
             int random = (rand() % 100 + 1); // ..100 >= error_probability
             if (random > error_probability) {
-                printf("Random is %d and error is %d\n", random, error_probability);
                 packetSize = packet.len + HEADLEN;
             } else // set fake damaged frame
             {
-                printf("@error => Random is %d and error is %d\n", random, error_probability);
+                printf("Set damaged frame\n");
 
                 if (packet.len > 10)
                     packetSize = (packet.len + HEADLEN) - (rand() % 10 + 1);
@@ -189,9 +186,6 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
             bytesSent = send(sockfd, &packet, packetSize, 0); // send the packet..
 
 
-            printf("# of bytesSent = %d\n", bytesSent);
-
-
             // return number of bytes sent out or -1 on error
             if (bytesSent == -1) // error....
             {
@@ -199,18 +193,10 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
                 exit(1);
             } else if (bytesSent != packetSize) {
                 printf("Expected bytes sent is %d but bytes sent was %d\n", packetSize, bytesSent);
-            }
-                // Sent successful
+            }                // Sent successful
             else {
-                printf("Sent %d bytes\n", bytesSent);
 
                 bytesReceived = recv(sockfd, &ack, HEADLEN, 0);
-
-
-                printf("Bytes Received is %d\n", bytesReceived);
-                printf("Ack length is %d\n", ack.len);
-                printf("Ack seq number is %d\n", ack.seq_num);
-
 
                 if (bytesReceived == -1) {
                     if (errno == EAGAIN) {
@@ -227,7 +213,6 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
                         exit(1);
                     }
                 }
-
                     // received without timeout
                 else {
                     if (ack.len != packet.len) {
@@ -240,12 +225,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
 
                     } else {
                         packet_ack = 1;
-
-
                         printf("Packet sent successfully\n");
-
-                        printf("Packet received bytes was %d and sent byte was %d\n", ack.len, packet.len);
-
                     }
 
                 }
@@ -294,8 +274,7 @@ void tv_sub(struct timeval *out, struct timeval *in) {
     out->tv_sec -= in->tv_sec;
 }
 
-uint8_t get_error_probability(char *arg) 
-{
+uint8_t get_error_probability(char *arg) {
     uint8_t error_probability;
 
     if (!(sscanf(arg, "%d", &error_probability))) {
@@ -306,6 +285,6 @@ uint8_t get_error_probability(char *arg)
         printf("Invalid range for Error Probability");
         exit(1);
     }
-    
+
     return error_probability;
 }
