@@ -11,6 +11,7 @@ void str_ser(int sockfd, uint8_t error_probability);
 // transmitting and receiving function
 int send_ack(int sockfd, struct ack_so *ack, uint8_t error_probability);
 uint8_t get_error_probability(char *arg);
+void setServerAddress(struct sockaddr_in* my_addr);
 
 
 //2nd param for error to simulate time out
@@ -43,10 +44,8 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    my_addr.sin_family = AF_INET;
-    my_addr.sin_port = htons(MYTCP_PORT);
-    my_addr.sin_addr.s_addr = htonl(INADDR_ANY); //inet_addr("172.0.0.1");
-    bzero(&(my_addr.sin_zero), 8);
+    setServerAddress(&my_addr);
+
     ret = bind(sockfd, (struct sockaddr *) &my_addr, sizeof (struct sockaddr)); //bind socket
     if (ret < 0) {
         printf("error in binding");
@@ -62,13 +61,19 @@ int main(int argc, char **argv) {
     while (1) {
         printf("waiting for data\n");
         sin_size = sizeof (struct sockaddr_in);
-        con_fd = accept(sockfd, (struct sockaddr *) &their_addr, &sin_size); //accept the packet
+        con_fd = accept(sockfd, (struct sockaddr *) &their_addr, &sin_size); //accept the packet (blocking)
+        // Return non negative on success, -1 on error
+        // Params:
+        //	sockfd: is a socket descriptor returned by the socket function.
+        //	cliaddr is a pointer to struct sockaddr that contains client IP address and port.
+        //	addrlen set it to sizeof(struct sockaddr).
+
         if (con_fd < 0) {
             printf("error in accept\n");
             exit(1);
         }
 
-        if ((pid = fork()) == 0) // creat acception process
+        if ((pid = fork()) == 0) // creat acception process, (return 0 at at child, process id at parent)
         {
             close(sockfd);
             str_ser(con_fd, error_probability); //receive packet and response
@@ -203,4 +208,11 @@ uint8_t get_error_probability(char *arg) {
     }
 
     return (uint8_t) error_probability;
+}
+
+void setServerAddress(struct sockaddr_in* my_addr) {
+    my_addr.sin_family = AF_INET;
+    my_addr.sin_port = htons(MYTCP_PORT);
+    my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    bzero(&(my_addr->sin_zero), 8);
 }

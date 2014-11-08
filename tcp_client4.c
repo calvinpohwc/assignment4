@@ -14,7 +14,7 @@ uint8_t get_error_probability(char *arg);
 int main(int argc, char **argv) {
     uint8_t error_probability = 0;
 
-    int sockfd, ret;
+    int sockfd, ret; // sockfd => socket description from socket(), ret = return msg from connect()
     float ti, rt;
     long len;
     struct sockaddr_in ser_addr;
