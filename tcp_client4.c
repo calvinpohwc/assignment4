@@ -18,6 +18,8 @@ int main(int argc, char **argv) {
     float ti, rt;
     long len;
     struct sockaddr_in ser_addr;
+    
+    
     char ** pptr;
     struct hostent *sh;
     struct in_addr **addrs;
@@ -275,7 +277,7 @@ void tv_sub(struct timeval *out, struct timeval *in) {
 }
 
 uint8_t get_error_probability(char *arg) {
-    uint8_t error_probability;
+    int error_probability;
 
     if (!(sscanf(arg, "%d", &error_probability))) {
         perror("Unable to parse Error Probability : ");
@@ -286,5 +288,5 @@ uint8_t get_error_probability(char *arg) {
         exit(1);
     }
 
-    return error_probability;
+    return (uint8_t)error_probability;
 }
