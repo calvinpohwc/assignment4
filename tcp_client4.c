@@ -166,8 +166,6 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
             if (random > error_probability) {
                 packetSize = packet.len + HEADLEN;
 
-                printf("random is %d and error is %d\n", random, error_probability);
-
             } else // set fake damaged frame
             {
                 printf("Set damaged frame\n");
