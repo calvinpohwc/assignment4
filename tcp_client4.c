@@ -114,6 +114,8 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
     struct timeval sendt, recvt;
     charIndex = 0; // character index
 
+    srand(time(NULL));
+
     fseek(fp, 0, SEEK_END); // set the file pointer to end of file
     fileLength = ftell(fp); // get the file pointer position  
     rewind(fp); // set file pointer back to the start
@@ -145,6 +147,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
         // end of packets splitting
 
         printf("\n New unique packet \n");
+        
 
         while (!packet_ack) // keep retransmit if not acknowledged
         {
@@ -159,12 +162,12 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
 
             printf("Packet length is %d \n", packet.len);
 
-
-            srand(time(NULL));
-
             int random = (rand() % 100 + 1); // ..100 >= error_probability
             if (random > error_probability) {
                 packetSize = packet.len + HEADLEN;
+
+                printf("random is %d and error is %d\n", random, error_probability);
+
             } else // set fake damaged frame
             {
                 printf("Set damaged frame\n");
