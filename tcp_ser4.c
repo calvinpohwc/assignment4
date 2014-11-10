@@ -91,7 +91,7 @@ void str_ser(int sockfd, uint8_t error_probability) {
     struct pack_so *ptr_packet;
     char receive_buffer[PACK_SIZE];
     struct ack_so ack;
-    int end = 0, bytes_received = 0, bytes_sent = 0, packets_received = 0;
+    int end = 0, bytes_received = 0, bytes_sent = 0, packets_received = 0, current_bytes_received = 0;
     long lseek = 0;
 
     ack.seq_num = NOT_SET;
@@ -103,11 +103,46 @@ void str_ser(int sockfd, uint8_t error_probability) {
         packets_received++;
         printf("\n Packet # received %d \n", packets_received);
 
-        if ((bytes_received = recv(sockfd, &receive_buffer, PACK_SIZE, 0)) == -1) //receive the packet
+        bytes_received = 0;
+
+        while (bytes_received != PACK_SIZE )
         {
-            printf("error when receiving\n");
-            exit(1);
+            char current_receive_buffer[1];
+
+            if ((current_bytes_received = recv(sockfd, &current_receive_buffer, 1, 0)) == -1) //receive the packet
+            {
+              printf("error when receiving\n");
+              exit(1);
+            }
+            
+            memcpy((receive_buffer + bytes_received), current_receive_buffer, current_bytes_received);
+
+            bytes_received ++;
+
+
+            
+//            if(bytes_received != 0)
+//                printf("bit is : %s\n", current_receive_buffer);
+
+            //printf("bit is : %c\n", current_receive_buffer[0]);
+
+           if (current_receive_buffer[0] == '\a')
+           {
+
+
+               printf("bit is : %d\n", current_bytes_received);
+               printf("bit is : %c\n", current_receive_buffer[0]);
+
+
+               printf("\ni am here\n");
+               printf("bytes_received is %d\n", bytes_received);
+//               sleep(5);
+               //printf("i am here\n");
+               
+               break;
+           }
         }
+    
 
         ptr_packet = NULL;
         ptr_packet = (struct pack_so*) receive_buffer; // de-serialize 
@@ -121,6 +156,9 @@ void str_ser(int sockfd, uint8_t error_probability) {
         printf("Received packet seq number is %d \n", ptr_packet->seq_num);
         printf("Expected seq number is %d \n", ack.seq_num);
         printf("Received packet length is %d \n", ptr_packet->len);
+
+        
+        printf("bytes received is %d \n", ptr_packet->len);
 
         ack.len = bytes_received - HEADLEN;
 

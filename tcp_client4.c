@@ -131,7 +131,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
     fread(buf, 1, fileLength, fp);
 
     /*** the whole file is loaded in the buffer. ***/
-    buf[fileLength] = '\0'; //append the end byte
+    buf[fileLength] = '\a'; //append the end byte
     gettimeofday(&sendt, NULL); //get the current time
     while (charIndex <= fileLength) {
         // split message into packets
@@ -199,6 +199,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
             }                // Sent successful
             else {
 
+             
                 bytesReceived = recv(sockfd, &ack, HEADLEN, 0);
 
                 if (bytesReceived == -1) {
