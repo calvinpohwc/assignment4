@@ -90,6 +90,8 @@ void str_ser(int sockfd, uint8_t error_probability) {
     struct pack_so *ptr_packet;
     char receive_buffer[PACK_SIZE];
     struct ack_so ack;
+    char current_receive_buffer[1];
+
     int end = 0, bytes_received = 0, bytes_sent = 0, packets_received = 0, current_bytes_received = 0;
     long lseek = 0;
 
@@ -105,9 +107,8 @@ void str_ser(int sockfd, uint8_t error_probability) {
 
         bytes_received = 0;
 
-        while (bytes_received != PACK_SIZE )
+        while (1) // loop until end of transmission is received
         {
-            char current_receive_buffer[1];
 
             if ((current_bytes_received = recv(sockfd, &current_receive_buffer, 1, 0)) == -1) //receive the packet
             {
@@ -115,32 +116,18 @@ void str_ser(int sockfd, uint8_t error_probability) {
               exit(1);
             }
             
+            if(current_receive_buffer[0] == END_OF_TRANS)
+            {            
+                printf("\n\nEND OF TRANS : %c\n", current_receive_buffer[0]);
+                break;
+            }
+            
+            
+            //if(bytes_received >= PACK_SIZE) // handles receive more data than
             memcpy((receive_buffer + bytes_received), current_receive_buffer, current_bytes_received);
 
             bytes_received ++;
 
-
-            
-//            if(bytes_received != 0)
-//                printf("bit is : %s\n", current_receive_buffer);
-
-            //printf("bit is : %c\n", current_receive_buffer[0]);
-
-           if (current_receive_buffer[0] == '\a')
-           {
-
-
-               printf("bit is : %d\n", current_bytes_received);
-               printf("bit is : %c\n", current_receive_buffer[0]);
-
-
-               printf("\ni am here\n");
-               printf("bytes_received is %d\n", bytes_received);
-//               sleep(5);
-               //printf("i am here\n");
-               
-               break;
-           }
         }
     
 
@@ -186,7 +173,7 @@ void str_ser(int sockfd, uint8_t error_probability) {
             bytes_sent = send_ack(sockfd, &ack, error_probability);
 
 
-            if (receive_buffer[bytes_received - 1] == '\a') // eof 								//if it is the end of the file
+            if (receive_buffer[bytes_received - 1] == END_OF_TRANS_BLOCK) // eof 								//if it is the end of the file
             {
                 end = 1;
                 ptr_packet->len--;

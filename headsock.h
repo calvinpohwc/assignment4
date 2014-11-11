@@ -18,7 +18,7 @@
 #define MYTCP_PORT 4950
 #define MYUDP_PORT 5350
 #define BUFSIZE 60000
-#define DATALEN 512
+#define DATALEN 5122
 #define HEADLEN 5
 #define PACK_SIZE DATALEN + HEADLEN
 #define MAX_TIMEOUT 100
@@ -30,6 +30,9 @@
 #define TRUE 1
 #define FALSE 0
 #define NOT_SET 10
+#define END_OF_TRANS 4
+#define END_OF_TRANS_BLOCK 23
+#define RECEIVE_SIZE 1
 
 #pragma pack(1)
 struct pack_so			//data packet structure

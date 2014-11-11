@@ -26,7 +26,6 @@ int main(int argc, char **argv) {
     FILE *fp;
 
 
-
     if (argc < 2 && argc > 3) {
         printf("parameters not match");
     }
@@ -96,6 +95,7 @@ int main(int argc, char **argv) {
 }
 
 float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
+    char pack_end = END_OF_TRANS;
     char *buf;
     char packet_ack;
     uint32_t packet_send = 0;
@@ -110,6 +110,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
 
 
     int bytesSent, bytesReceived, packetSize;
+    int8_t endByteSent;
     float time_inv = 0.0;
     struct timeval sendt, recvt;
     charIndex = 0; // character index
@@ -131,7 +132,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
     fread(buf, 1, fileLength, fp);
 
     /*** the whole file is loaded in the buffer. ***/
-    buf[fileLength] = '\a'; //append the end byte
+    buf[fileLength] = END_OF_TRANS_BLOCK; //append the end byte
     gettimeofday(&sendt, NULL); //get the current time
     while (charIndex <= fileLength) {
         // split message into packets
@@ -170,27 +171,24 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
             {
                 printf("Set damaged frame\n");
 
-                if (packet.len > 10)
-                    packetSize = (packet.len + HEADLEN) - (rand() % 10 + 1);
-                else if (packet.len > 0)
-                    packetSize = (packet.len - 1) + HEADLEN;
-                else
-                    packetSize = packet.len + HEADLEN;
-
-                if (PACK_SIZE < 0) {
-
+                if(PACK_SIZE <= 0)
+                {   
                     printf("Unable to set error probability when packet size is <= 0");
                     exit(1);
                 }
-
+                else if (packet.len < 10)
+                    packetSize = (packet.len - 1) + HEADLEN;
+                else
+                    packetSize = (packet.len + HEADLEN) - (rand() % 10 + 1);
             }
 
 
             bytesSent = send(sockfd, &packet, packetSize, 0); // send the packet..
+            endByteSent = send(sockfd, &pack_end, 1, 0); // signify end of packet..
 
 
             // return number of bytes sent out or -1 on error
-            if (bytesSent == -1) // error....
+            if (bytesSent == -1 || endByteSent == -1) // error....
             {
                 printf("send error!\n");
                 exit(1);
