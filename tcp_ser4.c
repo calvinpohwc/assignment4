@@ -26,7 +26,6 @@ int main(int argc, char **argv) {
     pid_t pid;
 
 
-    srand(time(NULL));
 
     if (argc > 2) {
         printf("parameters not match");
@@ -96,6 +95,7 @@ void str_ser(int sockfd, uint8_t error_probability) {
 
     ack.seq_num = NOT_SET;
 
+    srand(time(NULL));
 
     printf("receiving data!\n");
 
@@ -186,7 +186,7 @@ void str_ser(int sockfd, uint8_t error_probability) {
             bytes_sent = send_ack(sockfd, &ack, error_probability);
 
 
-            if (receive_buffer[bytes_received - 1] == '\0') // eof 								//if it is the end of the file
+            if (receive_buffer[bytes_received - 1] == '\a') // eof 								//if it is the end of the file
             {
                 end = 1;
                 ptr_packet->len--;
