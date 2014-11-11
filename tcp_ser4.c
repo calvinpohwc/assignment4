@@ -127,8 +127,9 @@ void str_ser(int sockfd, uint8_t error_probability) {
                 if (bytes_received < PACK_SIZE) // handles receive more data than
                     memcpy((receive_buffer + bytes_received), current_receive_buffer, current_bytes_received);
 
-                bytes_received++;
             }
+            bytes_received++;
+
         }
 
 
@@ -197,7 +198,6 @@ void str_ser(int sockfd, uint8_t error_probability) {
 
 int send_fail_ack(int sockfd, struct ack_so *ack, uint8_t error_probability) {
     int byte_sent = 0;
-    uint8_t timeout;
 
     int random = (rand() % 100 + 1); // ..100 >= error_probability
 
@@ -221,17 +221,12 @@ int send_fail_ack(int sockfd, struct ack_so *ack, uint8_t error_probability) {
 
 int send_ack(int sockfd, struct ack_so *ack, uint8_t error_probability, char lastByteReceived) {
     int byte_sent = 0;
-    uint8_t timeout;
 
     int random = (rand() % 100 + 1); // ..100 >= error_probability
 
     if (error_probability >= random && lastByteReceived != END_OF_TRANS) {
         printf("Setting timeout error\n");
-        timeout = TRUE;
     } else {
-        printf("No delay, Random is %d and error is %d\n", random, error_probability);
-        timeout = FALSE;
-
         printf("Sending ack\n");
 
         byte_sent = send(sockfd, ack, HEADLEN, 0);
