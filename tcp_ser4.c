@@ -9,8 +9,10 @@ tcp_ser.c: the source file of the server in tcp transmission
 
 void str_ser(int sockfd, uint8_t error_probability);
 // transmitting and receiving function
-int send_ack(int sockfd, struct ack_so *ack, uint8_t error_probability);
-uint8_t get_error_probability(char *arg);
+int send_ack(int sockfd, struct ack_so *ack, uint8_t error_probability, char lastByteReceived);
+int send_fail_ack(int sockfd, struct ack_so *ack, uint8_t error_probability);
+
+uint8_t get_error_probability();
 void setServerAddress(struct sockaddr_in* my_addr);
 
 
@@ -27,15 +29,14 @@ int main(int argc, char **argv) {
 
 
 
-    if (argc > 2) {
+    if (argc > 1) {
         printf("parameters not match");
     }
 
-    if (argc == 2) {
-        error_probability = get_error_probability(argv[1]);
-    }
 
-    printf("Error Probability chosen is : %d\n", error_probability);
+    error_probability = get_error_probability();
+
+    printf("Error Probability chosen is : %d %%\n", error_probability);
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0); //create socket
     if (sockfd < 0) {
@@ -155,13 +156,13 @@ void str_ser(int sockfd, uint8_t error_probability) {
 
             printf("Packet received length mismatched\n");
 
-            bytes_sent = send_ack(sockfd, &ack, error_probability);
+            bytes_sent = send_fail_ack(sockfd, &ack, error_probability);
 
         } else if (ptr_packet->seq_num != ack.seq_num) // duplicated received (not expected seq number)
         {
             printf("Sequence number mismatched\n");
 
-            bytes_sent = send_ack(sockfd, &ack, error_probability);
+            bytes_sent = send_fail_ack(sockfd, &ack, error_probability);
 
         } else // received succeed
         {
@@ -170,7 +171,7 @@ void str_ser(int sockfd, uint8_t error_probability) {
             ack.len = ptr_packet->len;
             ack.seq_num = !ptr_packet->seq_num; // set next expected seq number
 
-            bytes_sent = send_ack(sockfd, &ack, error_probability);
+            bytes_sent = send_ack(sockfd, &ack, error_probability, receive_buffer[bytes_received - 1]);
 
 
             if (receive_buffer[bytes_received - 1] == END_OF_TRANS) // eof 								//if it is the end of the file
@@ -178,6 +179,7 @@ void str_ser(int sockfd, uint8_t error_probability) {
                 end = 1;
                 ptr_packet->len--;
             }
+            
 
             memcpy((data_buffer + lseek), ptr_packet->data, ptr_packet->len);
             lseek += ptr_packet->len;
@@ -193,7 +195,9 @@ void str_ser(int sockfd, uint8_t error_probability) {
     printf("a file has been successfully received!\nthe total data received is %d bytes\n", (int) lseek + 1);
 }
 
-int send_ack(int sockfd, struct ack_so *ack, uint8_t error_probability) {
+
+
+int send_fail_ack(int sockfd, struct ack_so *ack, uint8_t error_probability) {
     int byte_sent = 0;
     uint8_t timeout;
 
@@ -220,10 +224,39 @@ int send_ack(int sockfd, struct ack_so *ack, uint8_t error_probability) {
 
 }
 
-uint8_t get_error_probability(char *arg) {
+
+int send_ack(int sockfd, struct ack_so *ack, uint8_t error_probability, char lastByteReceived) {
+    int byte_sent = 0;
+    uint8_t timeout;
+
+    int random = (rand() % 100 + 1); // ..100 >= error_probability
+
+    if (error_probability >= random && lastByteReceived != END_OF_TRANS) {
+        printf("Setting timeout error\n");
+        timeout = TRUE;
+    } else {
+        printf("No delay, Random is %d and error is %d\n", random, error_probability);
+        timeout = FALSE;
+
+        printf("Sending ack\n");
+
+        byte_sent = send(sockfd, ack, HEADLEN, 0);
+
+        if (byte_sent == -1) {
+            perror("Send error :");
+            exit(1);
+        }
+    }
+
+    return byte_sent;
+
+}
+
+uint8_t get_error_probability() {
     int error_probability;
 
-    if (!(sscanf(arg, "%d", &error_probability))) {
+    printf("Enter error probability : ");
+    if (!(scanf("%d", &error_probability))) {
         perror("Unable to parse Error Probability : ");
         exit(1);
     }
