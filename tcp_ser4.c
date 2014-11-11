@@ -116,7 +116,7 @@ void str_ser(int sockfd, uint8_t error_probability) {
               exit(1);
             }
             
-            if(current_receive_buffer[0] == END_OF_TRANS)
+            if(current_receive_buffer[0] == END_OF_PACKET)
             {            
                 printf("\n\nEND OF TRANS : %c\n", current_receive_buffer[0]);
                 break;
@@ -173,7 +173,7 @@ void str_ser(int sockfd, uint8_t error_probability) {
             bytes_sent = send_ack(sockfd, &ack, error_probability);
 
 
-            if (receive_buffer[bytes_received - 1] == END_OF_TRANS_BLOCK) // eof 								//if it is the end of the file
+            if (receive_buffer[bytes_received - 1] == END_OF_TRANS) // eof 								//if it is the end of the file
             {
                 end = 1;
                 ptr_packet->len--;

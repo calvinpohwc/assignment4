@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 }
 
 float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
-    char pack_end = END_OF_TRANS;
+    char pack_end = END_OF_PACKET;
     char *buf;
     char packet_ack;
     uint32_t packet_send = 0;
@@ -132,7 +132,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
     fread(buf, 1, fileLength, fp);
 
     /*** the whole file is loaded in the buffer. ***/
-    buf[fileLength] = END_OF_TRANS_BLOCK; //append the end byte
+    buf[fileLength] = END_OF_TRANS; //append the end byte
     gettimeofday(&sendt, NULL); //get the current time
     while (charIndex <= fileLength) {
         // split message into packets
