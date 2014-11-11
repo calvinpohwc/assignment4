@@ -183,6 +183,9 @@ void str_ser(int sockfd, uint8_t error_probability) {
 
 
 
+            if(TransmissionEnd)
+                ptr_packet->len--;
+            
             memcpy((data_buffer + lseek), ptr_packet->data, ptr_packet->len);
             lseek += ptr_packet->len;
 
