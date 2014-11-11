@@ -104,8 +104,6 @@ void str_ser(int sockfd, uint8_t error_probability) {
     printf("receiving data!\n");
 
     while (!TransmissionEnd) {
-        packets_received++;
-        printf("\n Packet # received %d \n", packets_received);
 
         bytes_received = 0;
         packetEnd = 0;
@@ -119,16 +117,24 @@ void str_ser(int sockfd, uint8_t error_probability) {
             }
 
             if (current_receive_buffer[0] == END_OF_PACKET) {
-                printf("Packet Received");
+                printf("Packet Received\n");
                 packetEnd = TRUE;
+            } else if (current_receive_buffer[0] == END_OF_TRANS) {
+                printf("End of Transmission\n");
+                TransmissionEnd = TRUE;
+                packetEnd = TRUE;
+                bytes_received++;
+
+
             } else {
 
 
                 if (bytes_received < PACK_SIZE) // handles receive more data than
                     memcpy((receive_buffer + bytes_received), current_receive_buffer, current_bytes_received);
 
+                bytes_received++;
+
             }
-            bytes_received++;
 
         }
 
@@ -175,15 +181,14 @@ void str_ser(int sockfd, uint8_t error_probability) {
             bytes_sent = send_ack(sockfd, &ack, error_probability, receive_buffer[bytes_received - 1]);
 
 
-            if (receive_buffer[bytes_received - 1] == END_OF_TRANS) // eof 								//if it is the end of the file
-            {
-                TransmissionEnd = TRUE;
-                ptr_packet->len--;
-            }
 
 
             memcpy((data_buffer + lseek), ptr_packet->data, ptr_packet->len);
             lseek += ptr_packet->len;
+
+            packets_received++;
+
+            printf("\n Packet # received %d \n", packets_received);
         }
     }
 
