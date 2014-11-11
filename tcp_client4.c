@@ -7,7 +7,7 @@ tcp_client.c: the source file of the client in tcp transmission
 float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability); //transmission function
 void tv_sub(struct timeval *out, struct timeval *in); //calcu the time interval between out and in
 void set_receive_timeout(int *sockfd); // set receive timeout
-uint8_t get_error_probability(char *arg);
+uint8_t get_error_probability();
 
 // 3rd param : simulates error of sending partial frame (damaged)
 
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     FILE *fp;
 
 
-    if (argc < 2 && argc > 3) {
+    if (argc != 2) {
         printf("parameters not match");
     }
 
@@ -36,12 +36,8 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    if (argc == 3) {
-        error_probability = get_error_probability(argv[2]);
-    }
-
-    printf("Error Probability chosen is : %d\n", error_probability);
-
+   
+   
 
     printf("canonical name: %s\n", sh->h_name); //print the remote host's information
     for (pptr = sh->h_aliases; *pptr != NULL; pptr++)
@@ -79,11 +75,12 @@ int main(int argc, char **argv) {
     }
 
 
-    //
-    printf("sockfd now is %d", sockfd);
     set_receive_timeout(&sockfd);
-    //
+ 
+    error_probability = get_error_probability();   
+    printf("Error Probability chosen is : %d\n", error_probability);
 
+    
     ti = str_cli(fp, sockfd, &len, error_probability); //perform the transmission and receiving
     rt = (len / (float) ti); //caculate the average transmission rate
     printf("Time(ms) : %.3f, Data sent(byte): %d\nData rate: %f (Kbytes/s)\n", ti, (int) len, rt);
@@ -276,10 +273,11 @@ void tv_sub(struct timeval *out, struct timeval *in) {
     out->tv_sec -= in->tv_sec;
 }
 
-uint8_t get_error_probability(char *arg) {
+uint8_t get_error_probability() {
     int error_probability;
 
-    if (!(sscanf(arg, "%d", &error_probability))) {
+    printf("Enter error probability : ");
+    if (!(scanf("%d", &error_probability))) {
         perror("Unable to parse Error Probability : ");
         exit(1);
     }
@@ -288,5 +286,5 @@ uint8_t get_error_probability(char *arg) {
         exit(1);
     }
 
-    return (uint8_t)error_probability;
+    return (uint8_t) error_probability;
 }
