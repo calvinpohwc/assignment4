@@ -250,8 +250,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
 }
 
 void set_receive_timeout(int *sockfd) {
-    printf("sockfd then is %d", *sockfd);
-
+  
     struct timeval timeout;
     int ret; // return value
     timeout.tv_sec = TIMEOUT_SEC; /* 0.5 sec Timeout */
