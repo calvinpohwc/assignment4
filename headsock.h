@@ -29,7 +29,7 @@
 #define TRUE 1
 #define FALSE 0
 #define NOT_SET 10
-#define END_OF_PACKET 23
+#define END_OF_PACKET 27
 #define END_OF_TRANS 4
 #define RECEIVE_SIZE 1
 
