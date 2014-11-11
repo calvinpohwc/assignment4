@@ -123,7 +123,7 @@ void str_ser(int sockfd, uint8_t error_probability) {
             }
             
             
-            //if(bytes_received >= PACK_SIZE) // handles receive more data than
+            if(bytes_received < PACK_SIZE) // handles receive more data than
             memcpy((receive_buffer + bytes_received), current_receive_buffer, current_bytes_received);
 
             bytes_received ++;
