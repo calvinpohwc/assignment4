@@ -12,13 +12,15 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <time.h>
+
 
 
 #define NEWFILE (O_WRONLY|O_CREAT|O_TRUNC)
 #define MYTCP_PORT 4950
 #define MYUDP_PORT 5350
 #define BUFSIZE 60000
-#define DATALEN 5122
+#define DATALEN 5000
 #define HEADLEN 5
 #define PACK_SIZE DATALEN + HEADLEN
 #define MAX_TIMEOUT 100

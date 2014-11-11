@@ -18,8 +18,8 @@ int main(int argc, char **argv) {
     float ti, rt;
     long len;
     struct sockaddr_in ser_addr;
-    
-    
+
+
     char ** pptr;
     struct hostent *sh;
     struct in_addr **addrs;
@@ -36,8 +36,8 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-   
-   
+
+
 
     printf("canonical name: %s\n", sh->h_name); //print the remote host's information
     for (pptr = sh->h_aliases; *pptr != NULL; pptr++)
@@ -76,11 +76,11 @@ int main(int argc, char **argv) {
 
 
     set_receive_timeout(&sockfd);
- 
-    error_probability = get_error_probability();   
+
+    error_probability = get_error_probability();
     printf("Error Probability chosen is : %d\n", error_probability);
 
-    
+
     ti = str_cli(fp, sockfd, &len, error_probability); //perform the transmission and receiving
     rt = (len / (float) ti); //caculate the average transmission rate
     printf("Time(ms) : %.3f, Data sent(byte): %d\nData rate: %f (Kbytes/s)\n", ti, (int) len, rt);
@@ -145,7 +145,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
         // end of packets splitting
 
         printf("\n New unique packet \n");
-        
+
 
         while (!packet_ack) // keep retransmit if not acknowledged
         {
@@ -168,12 +168,10 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
             {
                 printf("Set damaged frame\n");
 
-                if(PACK_SIZE <= 0)
-                {   
+                if (PACK_SIZE <= 0) {
                     printf("Unable to set error probability when packet size is <= 0");
                     exit(1);
-                }
-                else if (packet.len < 10)
+                } else if (packet.len < 10)
                     packetSize = (packet.len - 1) + HEADLEN;
                 else
                     packetSize = (packet.len + HEADLEN) - (rand() % 10 + 1);
@@ -191,10 +189,10 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
                 exit(1);
             } else if (bytesSent != packetSize) {
                 printf("Expected bytes sent is %d but bytes sent was %d\n", packetSize, bytesSent);
-            }                // Sent successful
+            }// Sent successful
             else {
 
-             
+
                 bytesReceived = recv(sockfd, &ack, HEADLEN, 0);
 
                 if (bytesReceived == -1) {
@@ -202,6 +200,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
                         printf("Timeout occurred before data is received\n");
                     } else {
                         perror("Received Error: ");
+                        exit(1);
                     }
 
                     error_count++;
@@ -211,8 +210,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
                         printf("Max timeout retries reached :%d):\n", MAX_TIMEOUT);
                         exit(1);
                     }
-                }
-                    // received without timeout
+                }                    // received without timeout
                 else {
                     if (ack.len != packet.len) {
                         error_count++;
@@ -250,7 +248,7 @@ float str_cli(FILE *fp, int sockfd, long *len, uint8_t error_probability) {
 }
 
 void set_receive_timeout(int *sockfd) {
-  
+
     struct timeval timeout;
     int ret; // return value
     timeout.tv_sec = TIMEOUT_SEC; /* 0.5 sec Timeout */

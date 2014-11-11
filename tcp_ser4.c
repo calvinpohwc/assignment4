@@ -1,5 +1,5 @@
 /**********************************
-tcp_ser.c: the source file of the server in tcp transmission 
+tcp_ser.c: the source file of the server in tcp transmission
  ***********************************/
 
 
@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
 
     if (argc > 1) {
         printf("parameters not match");
+        exit(1);
     }
 
 
@@ -92,8 +93,8 @@ void str_ser(int sockfd, uint8_t error_probability) {
     char receive_buffer[PACK_SIZE];
     struct ack_so ack;
     char current_receive_buffer[1];
-
-    int end = 0, bytes_received = 0, bytes_sent = 0, packets_received = 0, current_bytes_received = 0;
+    uint8_t TransmissionEnd = 0, packetEnd = 0;
+    int bytes_received = 0, bytes_sent = 0, packets_received = 0, current_bytes_received = 0;
     long lseek = 0;
 
     ack.seq_num = NOT_SET;
@@ -102,38 +103,37 @@ void str_ser(int sockfd, uint8_t error_probability) {
 
     printf("receiving data!\n");
 
-    while (!end) {
+    while (!TransmissionEnd) {
         packets_received++;
         printf("\n Packet # received %d \n", packets_received);
 
         bytes_received = 0;
-
-        while (1) // loop until end of transmission is received
+        packetEnd = 0;
+        while (!packetEnd) // loop until end of transmission is received
         {
 
             if ((current_bytes_received = recv(sockfd, &current_receive_buffer, 1, 0)) == -1) //receive the packet
             {
-              printf("error when receiving\n");
-              exit(1);
+                printf("error when receiving\n");
+                exit(1);
             }
-            
-            if(current_receive_buffer[0] == END_OF_PACKET)
-            {            
-                printf("\n\nEND OF TRANS : %c\n", current_receive_buffer[0]);
-                break;
+
+            if (current_receive_buffer[0] == END_OF_PACKET) {
+                printf("Packet Received");
+                packetEnd = TRUE;
+            } else {
+
+
+                if (bytes_received < PACK_SIZE) // handles receive more data than
+                    memcpy((receive_buffer + bytes_received), current_receive_buffer, current_bytes_received);
+
+                bytes_received++;
             }
-            
-            
-            if(bytes_received < PACK_SIZE) // handles receive more data than
-            memcpy((receive_buffer + bytes_received), current_receive_buffer, current_bytes_received);
-
-            bytes_received ++;
-
         }
-    
+
 
         ptr_packet = NULL;
-        ptr_packet = (struct pack_so*) receive_buffer; // de-serialize 
+        ptr_packet = (struct pack_so*) receive_buffer; // de-serialize
 
         if (ack.seq_num == NOT_SET) {
             ack.seq_num = ptr_packet->seq_num; // set initial ack seq_num
@@ -145,7 +145,7 @@ void str_ser(int sockfd, uint8_t error_probability) {
         printf("Expected seq number is %d \n", ack.seq_num);
         printf("Received packet length is %d \n", ptr_packet->len);
 
-        
+
         printf("bytes received is %d \n", ptr_packet->len);
 
         ack.len = bytes_received - HEADLEN;
@@ -176,10 +176,10 @@ void str_ser(int sockfd, uint8_t error_probability) {
 
             if (receive_buffer[bytes_received - 1] == END_OF_TRANS) // eof 								//if it is the end of the file
             {
-                end = 1;
+                TransmissionEnd = TRUE;
                 ptr_packet->len--;
             }
-            
+
 
             memcpy((data_buffer + lseek), ptr_packet->data, ptr_packet->len);
             lseek += ptr_packet->len;
@@ -195,8 +195,6 @@ void str_ser(int sockfd, uint8_t error_probability) {
     printf("a file has been successfully received!\nthe total data received is %d bytes\n", (int) lseek + 1);
 }
 
-
-
 int send_fail_ack(int sockfd, struct ack_so *ack, uint8_t error_probability) {
     int byte_sent = 0;
     uint8_t timeout;
@@ -205,10 +203,7 @@ int send_fail_ack(int sockfd, struct ack_so *ack, uint8_t error_probability) {
 
     if (error_probability >= random) {
         printf("Setting timeout error\n");
-        timeout = TRUE;
     } else {
-        printf("No delay, Random is %d and error is %d\n", random, error_probability);
-        timeout = FALSE;
 
         printf("Sending ack\n");
 
@@ -223,7 +218,6 @@ int send_fail_ack(int sockfd, struct ack_so *ack, uint8_t error_probability) {
     return byte_sent;
 
 }
-
 
 int send_ack(int sockfd, struct ack_so *ack, uint8_t error_probability, char lastByteReceived) {
     int byte_sent = 0;
